@@ -41,7 +41,7 @@ impl TimeManagement {
         }
 
         move_time = time_avail / move_time_fraction(g.move_number) + inc_avail / 2;
-        move_time = min(move_time, time_avail - MIN_MOVE_TIME);
+        move_time = min(move_time, time_avail.saturating_sub(MIN_MOVE_TIME));
         move_time = max(move_time, MIN_MOVE_TIME);
         g.move_time = move_time;
         info!("Movetime was set to {move_time}");

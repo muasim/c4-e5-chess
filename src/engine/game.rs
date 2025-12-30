@@ -1,9 +1,7 @@
 use super::{constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, store::Store};
 use crate::misc::types::*;
-use core::time::Duration;
 use cozy_chess::{Board, Move};
 use log::{error, info};
-use rayon::prelude::*;
 use std::{
     cmp::max,
     str::FromStr,
@@ -11,8 +9,12 @@ use std::{
         atomic::{AtomicBool, Ordering},
         Arc,
     },
-    thread::{self, JoinHandle},
 };
+
+#[cfg(not(target_arch = "wasm32"))]
+use std::thread::{self, JoinHandle};
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Duration;
 
 /// A chess game
 pub struct Game {
@@ -56,6 +58,7 @@ impl Game {
     }
 
     /// Set a timer to stop playing after the move time has elapsed.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn set_timer(&mut self) -> JoinHandle<()> {
         self.playing.store(true, Ordering::Relaxed);
         let playing_clone = self.playing.clone();
@@ -114,14 +117,19 @@ impl Game {
         let mut prior_values = self.board.get_legal_sorted(None);
         let mut prior_values_old: Vec<AnnotatedMove> = vec![];
 
+        #[cfg(not(target_arch = "wasm32"))]
         self.set_timer();
+
+        if prior_values.is_empty() {
+            return None; // Checkmate or stalemate
+        }
 
         if prior_values.len() == 1 {
             return Some(prior_values[0].mv);
         }
 
         while current_depth <= self.max_depth {
-            prior_values.par_iter_mut().for_each(
+            prior_values.iter_mut().for_each(
                 |AnnotatedMove {
                      mv,
                      sc,
@@ -192,12 +200,16 @@ impl Game {
             current_depth += 1;
             prior_values_old = prior_values.clone();
         }
-        self.game_store.put(
-            current_depth - 1,
-            best_value,
-            &self.board,
-            &best_move.unwrap(),
-        );
+        
+        // Only store if we found a move (best_move is Some)
+        if let Some(mv) = best_move {
+            self.game_store.put(
+                current_depth - 1,
+                best_value,
+                &self.board,
+                &mv,
+            );
+        }
 
         best_move
     }

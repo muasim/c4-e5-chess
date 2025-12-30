@@ -219,7 +219,10 @@ impl Cli {
                 info!("{} nodes examined.", self.game.node_count);
                 self.send_string(result.as_str());
             }
-            None => error!("No valid move found"),
+            None => {
+                info!("No valid move found (checkmate or stalemate)");
+                self.send_string("bestmove (none)");
+            }
         }
     }
 

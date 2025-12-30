@@ -10,21 +10,25 @@ license = "MIT"
 keywords = ["game", "chess"]
 categories = ["games"]
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 cozy-chess = "0.3"
 timer = "0.2"
 chrono = "0.4"
 log = { version = "0.4", features = ["release_max_level_off"] }
-simple-logging = "2.0"
+# simple-logging = "2.0"
 hashbrown = "0.16"
 rayon = "1.10"
+wasm-bindgen = { version = "0.2" }
 
 [dev-dependencies]
 test-case = "3.0.0"
 ctor = "0.6"
 serial_test = "3.0"
-criterion = "0.7"
-
+criterion = { version = "0.7", features = ["plotters", "cargo_bench_support"] }
+# criterion = "0.7"
 [profile.release]
 strip = true
 panic = "abort"
@@ -32,3 +36,13 @@ panic = "abort"
 [[bench]]
 name = "basic_benchmark"
 harness = false
+
+[target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
+wasm-bindgen = { version = "0.2", optional = true }
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O", "--enable-bulk-memory"]
+
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+# Keep the DWARF debug info for debugging in dev mode
+dwarf-debug-info = true
