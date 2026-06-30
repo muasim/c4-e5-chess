@@ -1,4 +1,4 @@
-use crate::misc::types::*;
+use crate::{engine::game::log, misc::types::*};
 use cozy_chess::{Board, Move};
 use std::ops::Not;
 
@@ -14,6 +14,7 @@ impl MoveGenPrime for Board {
     fn get_legal_sorted(&self, old_move: Option<Move>) -> Vec<AnnotatedMove> {
         let mut result: Vec<AnnotatedMove> = Vec::new();
         let enemy_pieces = self.colors(!self.side_to_move());
+        log(&format!("Enemy Pieces: {:#?}", enemy_pieces));
         let other_squares = enemy_pieces.not();
 
         self.generate_moves(|moves| {

@@ -2,6 +2,7 @@ use super::{constants::*, history::History, move_gen::MoveGenPrime, pvs::Pvs, st
 use crate::misc::types::*;
 use cozy_chess::{Board, Move};
 use log::{error, info};
+use wasm_bindgen::prelude::wasm_bindgen;
 use std::{
     cmp::max,
     str::FromStr,
@@ -26,6 +27,12 @@ pub struct Game {
     pub node_count: u64,
     game_store: Store,
     pub game_history: History,
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
 }
 
 impl Game {

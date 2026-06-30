@@ -1,0 +1,3 @@
+[submodule "libs/cozy-chess"]
+	path = libs/cozy-chess
+	url = https://github.com/analog-hors/cozy-chess

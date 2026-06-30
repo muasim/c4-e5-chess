@@ -182,6 +182,44 @@ impl ChessEngine {
         }
     }
 
+    /// Pass the turn to the opponent without making a move
+    pub fn pass_turn(&mut self) -> bool {
+        self.game.game_history.inc(&self.game.board);
+        // Create a null move by playing and then undoing to flip side to move
+        // Or use the board's internal method to flip side to move
+        // For now, we'll use a simple approach: store the current board state
+        // and flip the side without playing an actual move
+        
+        // Since cozy-chess doesn't have a direct "pass" operation,
+        // we need to manually flip the side to move by creating a copy
+        // This is a workaround - ideally cozy-chess would support null moves
+        let current_fen = self.game.board.to_string();
+        
+        // Parse and rebuild with flipped side to move
+        // Extract FEN parts and rebuild with opposite side to move
+        let parts: Vec<&str> = current_fen.split(' ').collect();
+        if parts.len() >= 2 {
+            let new_side = match parts[1] {
+                "w" => "b",
+                "b" => "w",
+                _ => return false,
+            };
+            let new_fen = format!("{} {} {}", parts[0], new_side, parts[2..].join(" "));
+            
+            match cozy_chess::Board::from_str(&new_fen) {
+                Ok(board) => {
+                    self.game.board = board;
+                    if self.game.board.side_to_move() == cozy_chess::Color::Black {
+                        self.game.move_number += 1;
+                    }
+                    return true;
+                }
+                Err(_) => return false,
+            }
+        }
+        false
+    }
+
     /// Check if the game is over (checkmate, stalemate, etc.)
     pub fn is_game_over(&self) -> bool {
         use cozy_chess::GameStatus;
